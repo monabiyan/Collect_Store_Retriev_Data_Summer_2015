@@ -1,0 +1,9 @@
+TotalDelaysByOrigin <- function(x){ df2 <- data.frame(airline_data, DELAYSUM = rowSums(airline_data[,7:8]) + rowSums(airline_data[,10:14]))DT6 <- data.table(df2)DT7 <- DT6[,DELAYSUMCOUNT := ifelse(DELAYSUM > 0, 1,0)]df7 <- data.frame(DT7)agg1 <- aggregate.data.frame(df7$DELAYSUMCOUNT, list(Origin = (df7$ORIGIN)), sum)agg1[x,]}
+
+TotalDelaysByOrigin(1)
+
+Also, professor let me know if this script is too much for the discussion.
+
+Best,
+
+Jon

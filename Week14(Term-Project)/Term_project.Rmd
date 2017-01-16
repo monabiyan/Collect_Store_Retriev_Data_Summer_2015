@@ -1,0 +1,767 @@
+---
+title: "Final Project Data retrieval"
+author: "Mohsen Nabian"
+date: "8/20/2015"
+output: word_document
+---
+---
+
+
+Introduction:
+
+This project intends to provide some scientific insight about the distribution of the restaurants, their prices, their customer satisfactions and their popularities based on the data extracted from "www.yelp.com"" the biggest repository for restaurants information.
+
+To obtain the data, a web scrapter is written to automatically extract all the data. 
+Moreover, to obtain the population and salary data associated with the zipcodes, we used the data provided by Population Study Center from university of michigan .
+This data is provided as xlsx data file in the following website: "http://www.psc.isr.umich.edu/dis/census/Features/tract2zip/"
+
+By scraping Yelp website, 13474 restaurants are recorded in 15 major cities in united states with 546 unique zip codes associated with each restaurants.
+
+The cities are:
+
+"New York,NY","Chicago,IL","Boston,MA","Los Angeles,CA","Houston,TX","Philadelphia,PA","San Francisco,CA","Houston,TX","Washington ,DC","Phoenix,AZ","Seattle,WA","Baltimore,MD","Cleaveland,OH","Las Vegas,NV","Austin,TX"
+
+
+It is aimed to perform regression analysis to find direct or indirect significant linear relationships between  independent parameters like price , satisfaction , wealth of people, popularity of restaurants and so on.
+
+
+
+
+STEP1) WEb Scraping   
+
+This code is scraping the yelp website through 15 major cities of united states and takes 900 restaurant from each city.
+By running this code, your ip might become blocked by Yelp forever, as it happened to me . 
+However, before being blocked, I recieved very good amount of data for my analysis. 
+
+```{r eval=FALSE}
+
+#################################################################################################
+
+
+
+cat("\014")    #This clears the Consol
+rm(list=ls())    #This removes all the variables previously existed in Global Environment.
+require(RCurl)    #Downloading Package
+require(XML)
+library(RCurl)     #Using package in this program
+library(XML)
+library(stringr)
+#Set the working directory to your workspace
+setwd("C:/Users/monabiyan/SkyDrive/Summer 2015/Collect,retrieve data/Week14(Term-Project)")
+
+#YelpParse Function parses data in the YELP search pages. It provides Name,Type,Price, the number of reviews and the Tell number for each element.
+#The Elements could be restaurant or bars or coffee-shops or so many other places.
+#It is requiered to find the link in YELP website and put it in the YelpParse function here.
+#User is able to choose which information he/she wants as output by putting TRUE or FALSE in the correponding places for input.
+#TYPE,PRICE,REVIEW,TELL should be substituted by TRUE or FALSE based on User's need.
+YelpParse<-function(link)   
+{
+  
+  ########## To understand which information the user wants######
+  #choice=0;
+  #choice[1]=1
+  #choice[2]=as.numeric(TYPE)*2
+  #choice[3]=as.numeric(PRICE)*3
+  #choice[4]=as.numeric(REVIEW)*4
+  #choice[5]=as.numeric(TELL)*5
+  ################################################################
+  # This is the URL of the website we need scrape to get information on the 
+  
+  theurl <- link
+  theurl<-gsub(" ","",theurl);   #No extra spaces
+  webpage <- getURL(theurl)
+  # convert the page into a line-by-line format rather than a single string
+  tc <- textConnection(webpage)
+  webpage <- readLines(tc) #webpage is now a vector of string each elament is a line of string
+  close(tc)
+  pagetree <- htmlTreeParse(webpage, useInternalNodes = TRUE)  #pagetree is now in html format and parseable with xpath syntax.
+  
+  
+  
+  #########################  NAME  ###############################
+  
+  restaurant.name<- unlist(xpathApply(pagetree,"//*/span[@class='indexed-biz-name']/a[@*][@*][@*]",xmlValue))
+  if(length(restaurant.name)==11)   #Sometimes it gives 11 ellements and the first one is wrong" 
+  {restaurant.name<-restaurant.name[2:11]}
+  restaurant.name<-as.character(restaurant.name)
+  restaurant.name<-gsub("<U+0092>","",restaurant.name)
+  
+     ###### Removing <U+0092> ####  I Found this in Internet
+  Encoding(restaurant.name) <- "latin1"  # (just to make sure)
+  iconv(restaurant.name, "latin1", "ASCII", sub="")
+     #####
+  
+  
+  restaurant.name
+  
+  
+  
+  ############################   REVIEW COUNT  #############################
+  
+  review.count<-unlist(xpathApply(pagetree,"//*/span[@class='review-count rating-qualifier']",xmlValue))
+  review.count
+  review.count<-gsub("\n            ", "",review.count) #Removing extra characters"
+  review.count<-gsub("\n    ", "",review.count)
+  review.count<-gsub(" reviews", "",review.count)
+  if(length(review.count)==11)
+  {review.count<-review.count[2:11]}
+  review.count<-as.numeric(review.count)
+  review.count
+  
+  ############################# PRICE #############################
+  
+  restaurant.price<-unlist(xpathApply(pagetree,"//*/span[@class='business-attribute price-range']",xmlValue))
+  print(restaurant.price)
+  for (i in 1:length(restaurant.price))     #Scaling price notations to 1,2,3,4 accordingly where 4 is very epensive.
+  {
+    if (restaurant.price[i]=="$")  {restaurant.price[i]="1"; }
+    if (restaurant.price[i]=="$$")  {restaurant.price[i]="2"; }
+    if (restaurant.price[i]=="$$$")  {restaurant.price[i]="3"; }
+    if (restaurant.price[i]=="$$$$")  {restaurant.price[i]="4"; }
+  }
+  restaurant.price
+  if(length(restaurant.price)==11)
+  {restaurant.price<-restaurant.price[2:11]}
+  restaurant.price<-as.numeric(restaurant.price)
+  restaurant.price
+  
+  
+  #########################  TYPE   ############################
+  
+  restaurant.type<-unlist(xpathApply(pagetree,"//*/span[@class='category-str-list']/a[@*][1]",xmlValue))  ##Some times there are several <a> tags. We need the first one.
+  if(length(restaurant.type)==11)
+  {restaurant.type<-restaurant.type[2:11]}
+  restaurant.type<-as.character(restaurant.type)
+  restaurant.type
+  
+  ########################   star  ###############################
+  restaurant.star<-unlist(xpathApply(pagetree,"//*/div[@class='rating-large']/i",xmlAttrs))
+  restaurant.star<-as.character(restaurant.star)
+  
+  restaurant.star<-gsub(" star rating", "",restaurant.star)
+  hh=0;
+  for (i in 1:(length(restaurant.star)/2))
+  {hh[i]<-restaurant.star[2*i]}
+  restaurant.star<-hh
+  restaurant.star<-as.numeric(restaurant.star)
+  
+ 
+  
+  ########################   Neighborhood  ###############################
+  restaurant.neighborhood<-unlist(xpathApply(pagetree,"//*/span[@class='neighborhood-str-list']",xmlValue))
+  
+  restaurant.neighborhood<-gsub("\n            ", "",restaurant.neighborhood)
+  restaurant.neighborhood<-gsub("        ", "",restaurant.neighborhood)
+  if(length(restaurant.neighborhood)==11)
+  {restaurant.neighborhood<-restaurant.neighborhood[2:11]}
+  restaurant.neighborhood<-as.character(restaurant.neighborhood)
+  restaurant.neighborhood
+ 
+  
+  ########################   ADDRESS  ###############################
+  restaurant.address<-unlist(xpathApply(pagetree,"//*/address",xmlValue))
+  
+  restaurant.address<-gsub("\n            ", "",restaurant.address)
+  restaurant.address<-gsub("        ", "",restaurant.address)
+  restaurant.address<-gsub("\n", "",restaurant.address)
+  restaurant.address<-gsub(city,paste(" ",city),restaurant.address)
+  if(length(restaurant.address)==11)
+  {restaurant.address<-restaurant.address[2:11]}
+  restaurant.address<-as.character(restaurant.address)
+  restaurant.address
+  restaurant.zip<-str_sub(restaurant.address,-5,-1)
+  ############################  TELL  ##############################
+  
+  restaurant.tell<-unlist(xpathApply(pagetree,"//*/div[@class='secondary-attributes']/span[@class='biz-phone']",xmlValue))
+  restaurant.tell<-gsub("\n        ", "",restaurant.tell)
+  restaurant.tell<-gsub("\n    ", "",restaurant.tell)
+  if(length(restaurant.tell)==11)
+  {restaurant.tell<-restaurant.tell[2:11]}
+  restaurant.tell<-as.character(restaurant.tell)
+  restaurant.tell
+  
+  
+  ############################### Putting ALL in a DATA FRAME ##############################
+  min_length=min(length(restaurant.name),length(restaurant.type),length(restaurant.price),length(review.count),length(restaurant.tell),length(restaurant.address),length(restaurant.star))
+  restaurant.data<-data.frame(NAME=restaurant.name[1:min_length],TYPE=restaurant.type[1:min_length],PRICE= restaurant.price[1:min_length],REVIEW_COUNT=review.count[1:min_length],STAR=restaurant.star[1:min_length],TELL=restaurant.tell[1:min_length],ADDRESS=restaurant.address[1:min_length],ZIPCODE=restaurant.zip[1:min_length])
+  return(restaurant.data)
+}
+  
+  ##################Statistical and Searching Questions   ###############
+  
+  #print(restaurant.data[,choice])
+  #print(paste("The average price levels is",mean(restaurant.data$PRICE)))
+  #print(paste("The standard deviation of price levels is",sd(restaurant.data$PRICE)))
+  #print(paste("The average number of reviews for restaurant is",mean(restaurant.data$REVIEW_COUNT) ))
+  #print(paste(restaurant.data$NAME[restaurant.data$PRICE==1],"  is inexpensive. ENJOY!!"))
+  
+  
+
+
+
+
+
+#######################################
+AddSalary<-function(df)
+{
+  zip_info<-read.csv("MedianZIP-3.csv",header=TRUE,stringsAsFactors=FALSE)
+  
+  
+  zip_info$Zip<-as.character(zip_info$Zip)
+  for (i in 1:length(zip_info[,1]))
+  {
+    if(nchar(zip_info$Zip[i])==4)
+    {
+      zip_info$Zip[i]<-paste("0",zip_info$Zip[i])
+    }
+  }
+  zip_info$Zip<-gsub(" ", "",zip_info$Zip)
+  
+  
+  zip_info$Median<-as.character(zip_info$Median)
+  zip_info$Mean<-as.character(zip_info$Mean)
+  zip_info$Pop<-as.character(zip_info$Pop)
+  df$ZIPCODE<-as.character(df$ZIPCODE)
+  
+  
+  MEDIAN_SAL<-0;
+  MEAN_SAL<-0;
+  POP<-0;
+  
+  
+  
+  for(i in 1:length(df[,1]))
+  {
+    if (sum(df$ZIPCODE[i]==zip_info$Zip)==0)
+    {
+      MEDIAN_SAL[i]=0;
+      MEAN_SAL[i]=0;
+      POP[i]=0;
+    }
+    else
+    {
+      MEDIAN_SAL[i]<-zip_info$Median[df$ZIPCODE[i]==zip_info$Zip]
+      MEAN_SAL[i]<-zip_info$Mean[df$ZIPCODE[i]==zip_info$Zip]
+      POP[i]<-zip_info$Pop[df$ZIPCODE[i]==zip_info$Zip]
+    }
+  }
+  df<-cbind(df,MEDIAN_SAL,MEAN_SAL,POP)
+  return(df)
+  
+}
+
+
+
+
+
+##############################################################
+
+setwd("C:/Users/nabian.m/Desktop/cities")
+
+
+megacities<-c("New York,NY","Chicago,IL","Boston,MA","Los Angeles,CA","Houston,TX","Philadelphia,PA","San Francisco,CA","Houston,TX","Washington ,DC","Phoenix,AZ","Seattle,WA","Baltimore,MD","Cleaveland,OH","Las Vegas,NV","Austin,TX","Oklahama City,OK")
+
+n<-90
+
+for (location in megacities)
+{
+      print(location)
+      comma<-unlist(str_locate_all(pattern =',',location))[1]
+      comma<-as.numeric(comma)
+      city<-str_sub(location,start=1,end=(comma-1))
+      state<-str_sub(location,start=(comma+1),end=nchar(location))
+      print(city)
+      address<-paste("http://www.yelp.com/search?find_desc=Restaurants&find_loc=",city,"%2C+",state,"&start=",as.character(0),sep="")
+      all<-YelpParse(address)
+      
+      print(all)
+      
+      #ads <- all$ADDRESS
+      #locations <- ldply(ads, function(x) getLocation(x))
+      #names(locations) <- c("LATTITUDE", "LONGITUDE", "location_type", "formatted")
+      #all<-cbind(all,locations)
+      
+      
+      
+      for (i in 1:n)
+      {
+        print(i)
+        address<-paste("http://www.yelp.com/search?find_desc=Restaurants&find_loc=",city,"%2C+",state,"&start=",as.character(i*10),sep="")
+        df<-YelpParse(address)
+        
+        #ads <- df$ADDRESS
+        #locations <- ldply(address, function(x) getLocation(x))
+        #names(locations) <- c("LATTITUDE", "LONGITUDE", "location_type", "formatted")
+        
+        #hh<-cbind(df,locations)
+        #all<-rbind(all,hh)
+        all<-rbind(all,df)
+      }    
+      
+      
+      
+      all<-AddSalary(all)  #Update with the salaries and populations
+      all<cbind(all,city)
+      all<-all[-which((all$POP==0)==TRUE),]
+      head(all)
+      
+      write.csv(all,file=paste(city,"_res.csv"),row.names = FALSE)
+
+}
+
+
+#########################################################################
+
+
+######################### Adding City as a new column ###############
+
+setwd("C:/Users/nabian.m/Desktop/cities")
+megacities<-c("New York,NY","Chicago,IL","Boston,MA","Los Angeles,CA","Houston,TX","Philadelphia,PA","San Francisco,CA","Houston,TX","Washington ,DC","Phoenix,AZ","Seattle,WA","Baltimore,MD","Cleaveland,OH","Las Vegas,NV","Austin,TX","Oklahama City,OK")
+
+for (location in megacity)
+{
+  print(location)
+  comma<-unlist(str_locate_all(pattern =',',location))[1]
+  comma<-as.numeric(comma)
+  city<-str_sub(location,start=1,end=(comma-1))
+  state<-str_sub(location,start=(comma+1),end=nchar(location))
+  
+  
+  all<-read.csv(file=paste(city,"_res.csv"))
+  all<-cbind(all,city)
+  write.csv(all,file=paste(city,"_res.csv"),row.names = FALSE)
+}
+
+###############################################################
+
+
+############ earasing comma "," from Salary and Population ####
+
+setwd("C:/Users/nabian.m/Desktop/cities")
+megacities<-c("New York,NY","Chicago,IL","Boston,MA","Los Angeles,CA","Houston,TX","Philadelphia,PA","San Francisco,CA","Houston,TX","Washington ,DC","Phoenix,AZ","Seattle,WA","Baltimore,MD","Cleaveland,OH","Las Vegas,NV","Austin,TX","Oklahama City,OK")
+
+for (location in megacities)
+{
+  print(location)
+  comma<-unlist(str_locate_all(pattern =',',location))[1]
+  comma<-as.numeric(comma)
+  city<-str_sub(location,start=1,end=(comma-1))
+  state<-str_sub(location,start=(comma+1),end=nchar(location))
+  
+  
+  all<-read.csv(file=paste(city,"_res.csv"))
+  
+  all$MEDIAN_SAL<-gsub(",","",all$MEDIAN_SAL)
+  all$MEAN_SAL<-gsub(",","",all$MEAN_SAL)
+  all$POP<-gsub(",","",all$POP)
+                      
+  write.csv(all,file=paste(city,"_res.csv"),row.names = FALSE)
+}
+
+
+########################################################
+```
+
+
+So far all requiered data are collected and saved in csv files. Each city,900 restaurant in one file. 15 cities and 15 files.
+
+Now lets start reading the data and putting them all together as 'all' data frame.
+
+```{r message=F, warning=F}
+########### Reading and Making One DataFarme of All Files ############################################
+
+
+library(stringr)
+setwd("C:/Users/nabian.m/Desktop/cities")
+megacity<-"New York,NY"
+
+for (location in megacity)
+{
+  print(location)
+  comma<-unlist(str_locate_all(pattern =',',location))[1]
+  comma<-as.numeric(comma)
+  city<-str_sub(location,start=1,end=(comma-1))
+  state<-str_sub(location,start=(comma+1),end=nchar(location))
+  
+  
+  all<-read.csv(file=paste(city,"_res.csv"))
+}
+
+megacities<-c("Chicago,IL","Boston,MA","Los Angeles,CA","Houston,TX","Philadelphia,PA","San Francisco,CA","Houston,TX","Washington ,DC","Phoenix,AZ","Seattle,WA","Baltimore,MD","Cleaveland,OH","Las Vegas,NV","Austin,TX","Oklahama City,OK")
+
+
+for (location in megacities)
+{
+  
+  comma<-unlist(str_locate_all(pattern =',',location))[1]
+  comma<-as.numeric(comma)
+  city<-str_sub(location,start=1,end=(comma-1))
+  state<-str_sub(location,start=(comma+1),end=nchar(location))
+  print(location)
+  df<-read.csv(file=paste(city,"_res.csv"))
+  all<-rbind(df,all)
+}
+
+
+
+
+```
+
+
+Here are some plots from 'all' data frame.
+That means all data (13474 restaurants) as a whole regardress of their locations are being ploted here:
+```{r}
+
+hist(all$PRICE,breaks=20, col="red",xlab="price",main="Restaurant Price level in US")
+hist(all$REVIEW_COUNT,breaks=20, col="green",xlab="# of reviews",main="Restaurant # of reviews in US")
+hist(all$STAR,breaks=20, col="blue",xlab="stars (score)",main="Restaurant # of stars in US")
+
+#Restaurants Type
+tp<-as.data.frame(table(as.factor(all$TYPE)))
+tp<-tp[with(tp, order(-tp$Freq)), ]  # sorting restaurant types based of frequency
+tp[1:20,]
+```
+
+
+```{r fig.width = 8, fig.height = 8,message=F, warning=F}
+pie(tp$Freq[1:30], labels = tp$Var1[1:30], main="Restaurants in US",col=rainbow(30))
+
+######## For Each city Medians and Means
+
+
+megacities<-c("New York,NY","Chicago,IL","Boston,MA","Los Angeles,CA","Houston,TX","Philadelphia,PA","San Francisco,CA","Houston,TX","Washington ,DC","Phoenix,AZ","Seattle,WA","Baltimore,MD","Cleaveland,OH","Las Vegas,NV","Austin,TX")
+
+i=1;
+median_price=0;
+mean_price=0;
+median_reviews=0;
+mean_reviews=0;
+median_star=0;
+mean_star=0;
+mean_of_median_salary=0;
+population=0;
+city_name=0;
+
+for (location in megacities)
+{
+  comma<-unlist(str_locate_all(pattern =',',location))[1]
+  comma<-as.numeric(comma)
+  city<-str_sub(location,start=1,end=(comma-1))
+  print(city)
+  state<-str_sub(location,start=(comma+1),end=nchar(location))
+  
+  
+  median_price[i]<-median(as.numeric((all$PRICE[all$city==city])),na.rm = TRUE)
+  
+  mean_price[i]<-mean(as.numeric((all$PRICE[all$city==city])),na.rm = TRUE)
+  
+  median_reviews[i]<-median(as.numeric((all$REVIEW_COUNT[all$city==city])),na.rm = TRUE)
+  mean_reviews[i]<-mean(as.numeric((all$REVIEW_COUNT[all$city==city])),na.rm = TRUE)
+  
+  median_star[i]<-median(as.numeric((all$STAR[all$city==city])),na.rm = TRUE)
+  mean_star[i]<-mean(as.numeric((all$STAR[all$city==city])),na.rm = TRUE)
+  
+  mean_of_median_salary[i]<-median(as.numeric((all$MEDIAN_SAL[all$city==city])),na.rm = TRUE)  
+  
+  population[i]<-sum(as.numeric((all$POP[all$city==city])),na.rm = TRUE)
+    
+  city_name[i]<-city
+  i=i+1
+}
+```
+
+Here are the the independent variables for each city: 
+
+```{r,message=F, warning=F}
+median_price
+mean_price
+median_reviews
+mean_reviews
+median_star
+mean_star
+mean_of_median_salary
+population
+city_name
+
+```
+
+
+saving data:
+
+```{r,message=F, warning=F}
+city_info<-data.frame(city_name,mean_price,median_price,median_reviews,mean_reviews,median_star,mean_star,
+                    mean_of_median_salary,population)
+                      
+city_info                      
+                      
+                      
+                      
+```
+
+Now it is time to do analysis based on zip codes. 
+```{r,message=F, warning=F}
+######## For Each zip Code Medians and Means
+
+
+i=1;
+median_price=0;
+mean_price=0; 
+median_reviews=0;
+mean_reviews=0;
+median_star=0;
+mean_star=0;
+median_salary=0;
+population=0;
+city_name=0;
+zip_code=0;
+zip_count=0;
+for (zip in unique(all$ZIPCODE))
+{
+  
+  median_price[i]<-median(as.numeric((all$PRICE[all$ZIPCODE==zip])),na.rm = TRUE)
+  
+  mean_price[i]<-mean(as.numeric((all$PRICE[all$ZIPCODE==zip])),na.rm = TRUE)
+  
+  median_reviews[i]<-median(as.numeric((all$REVIEW_COUNT[all$ZIPCODE==zip])),na.rm = TRUE)
+  mean_reviews[i]<-mean(as.numeric((all$REVIEW_COUNT[all$ZIPCODE==zip])),na.rm = TRUE)
+  
+  median_star[i]<-median(as.numeric((all$STAR[all$ZIPCODE==zip])),na.rm = TRUE)
+  mean_star[i]<-mean(as.numeric((all$STAR[all$ZIPCODE==zip])),na.rm = TRUE)
+  
+  median_salary[i]<-as.numeric((all$MEDIAN_SAL[all$ZIPCODE==zip]))
+  
+  median_salary[i]<-as.numeric((all$MEDIAN_SAL[all$ZIPCODE==zip]))
+  
+  population[i]<-as.numeric((all$POP[all$ZIPCODE==zip]))
+  
+  city_name[i]<-as.character(all$city[all$ZIPCODE==zip])
+  
+  zip_code[i]<-zip
+  
+  zip_count[i]<-sum(all$ZIPCODE==zip)
+  i=i+1
+  
+}
+
+head(mean_price)
+head(median_reviews)
+head(mean_reviews)
+head(median_star)
+head(mean_star)
+head(median_salary)
+head(population)
+head(city_name)
+head(zip_code)
+head(zip_count)
+
+
+```
+
+
+Regression Analysis: 
+
+Since our analysis is based on zip codes, we only take zipcodes with more than 30 restaurants captured in that zipcode.
+```{r message=F, warning=F}
+
+zip_info<-data.frame(zip_code,city_name,mean_price,median_price,median_reviews,mean_reviews,median_star,mean_star,median_salary,population,zip_count)
+
+zip_credit<-zip_info[zip_info$zip_count>30,]  # Zip codes that have more than 50 restaurants
+
+head(zip_credit)
+sum(zip_credit$zip_count)    #9863 restaurants from 154 zipcodes in which 30 restaurants are there
+#################################################
+```
+
+
+So here are a great information about the zip codes :
+```{r}
+############ Highest Score average score for zip codes ######
+zip_credit$zip_code[sort(zip_credit$mean_star,decreasing = TRUE)==zip_credit$mean_star]
+
+zip_mean_star_ordered<-zip_credit[order(-zip_credit$mean_star),]
+```
+
+Highest satisfaction (highest star score)  :
+```{r}
+
+head(zip_mean_star_ordered)
+
+```
+
+Lowest satisfaction (lowest star score)  :
+```{r}
+tail(zip_mean_star_ordered)
+```
+unfortunaltely Boston has a big share in unsatisfactory restaurants.
+
+Here are the zipcodes with most expensive restaurants: 
+```{r}
+zip_mean_price_ordered<-zip_credit[order(-zip_credit$mean_price),]
+head(zip_mean_price_ordered)
+
+```
+
+Here are the zipcodes with least expensive restaurants:
+
+```{r}
+
+tail(zip_mean_price_ordered)
+```
+So if you are a food lover and have not so much money go to Austin 78705.
+
+
+here we do the same procedure but instead of average price we worked on the median price:
+
+```{r}
+zip_median_price_ordered<-zip_credit[order(-zip_credit$median_price),]
+head(zip_median_price_ordered)
+tail(zip_median_price_ordered)
+```
+
+Zipcodes with the highest avergare in popularity (written reviews )  are:  
+```{r}
+zip_mean_number_review_ordered<-zip_credit[order(-zip_credit$mean_reviews),]
+head(zip_mean_number_review_ordered)
+```
+
+So losangeles 90013 has the highest average popularity restaurants. This is downtown Los Angeles
+Sanfransico 94122 is the next.
+
+
+
+
+Least popular restaurants
+```{r}
+
+tail(zip_mean_number_review_ordered)
+
+```
+Mostly in Cleavland and Baltimore.
+
+
+The same analysis but with the zip codes wityh highest and lowest median popularity restaurants. 
+```{r}
+zip_median_number_review_ordered<-zip_credit[order(-zip_credit$median_reviews),]
+head(zip_median_number_review_ordered)
+tail(zip_median_number_review_ordered)
+###############################################################
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+Some histogram visualization: (self explanatory)
+
+```{r}
+
+
+hist(zip_credit$mean_price,xlab="mean_price",col = "red",main="Histogram of restaurants mean Prices for 154 zipcodes in US")
+hist(zip_credit$mean_reviews,xlab="mean_reviews",col = "blue",main="Histogram of restaurants mean number of reviews for 154 zipcodes in US")
+hist(zip_credit$mean_star,xlab="mean_star",col = "green",main="Histogram of restaurants mean of star score for 154 zipcodes in US")
+
+
+```
+
+
+Regression Analysis:
+
+In this section, we perform statistical and regression analysis to discover underlying significant linear relationhips between the independent variables:
+
+```{r,message=F, warning=F}
+library(ggplot2)
+########## plot star vs price ######################
+lm(mean_star~mean_price,data=zip_credit)  #Not significant 
+ggplot(zip_credit, aes(x=mean_price, y=mean_star)) + geom_point() 
+
+lm(mean_star~median_salary,data=zip_credit) # Not significant 
+ggplot(zip_credit, aes(x=median_salary, y=mean_star)) + geom_point() 
+
+summary(lm(mean_price~median_salary,data=zip_credit)) #linear relation (positive slope)
+ggplot(zip_credit, aes(x=median_salary, y=mean_price)) + geom_point() + geom_smooth(method=lm)
+
+lm(median_reviews~population,data=zip_credit)# Not significant 
+ggplot(zip_credit, aes(x=population, y=median_reviews)) + geom_point() 
+
+lm(mean_reviews~population,data=zip_credit) #Not significant 
+ggplot(zip_credit, aes(x=population, y=mean_reviews)) + geom_point() 
+
+
+
+summary(lm(mean_price~population,data=zip_credit)) #linear relationship ( negetive slope)
+ggplot(zip_credit, aes(x=population, y=mean_price)) + geom_point() + geom_smooth(method=lm)
+
+
+summary(lm(zip_count~population,data=zip_credit)) #linear relationship ( negetive slope)  !!!
+ggplot(zip_credit, aes(x=population, y=zip_count)) + geom_point() + geom_smooth(method=lm)
+
+
+lm(zip_count~median_salary,data=zip_credit) #Not significant 
+ggplot(zip_credit, aes(x=median_salary, y=zip_count)) + geom_point() 
+
+
+
+lm(median_salary~population,data=zip_credit) #Not significant  
+ggplot(zip_credit, aes(x=population, y=median_salary)) + geom_point() 
+
+
+
+summary(lm(mean_star~population,data=zip_credit))  # linear relationship (positive slope)
+ggplot(zip_credit, aes(x=population, y=mean_star)) + geom_point() + geom_smooth(method=lm)
+
+
+
+lm(zip_count~mean_price,data=zip_credit)  # Not significant 
+ggplot(zip_credit, aes(x=mean_price, y=zip_count)) + geom_point() 
+
+
+
+summary(lm(mean_star~zip_count,data=zip_credit)) #linear relationship (negetive slope)
+ggplot(zip_credit, aes(x=zip_count, y=mean_star)) + geom_point() + geom_smooth(method=lm)
+
+
+
+summary(lm(mean_reviews~median_salary,data=zip_credit)) #linear relationship (positive slope)
+ggplot(zip_credit, aes(x=median_salary, y=mean_reviews)) + geom_point() + geom_smooth(method=lm)
+
+
+summary(lm(median_reviews~median_salary,data=zip_credit)) #linear relationship (positive slope)
+ggplot(zip_credit, aes(x=median_salary, y=median_reviews)) + geom_point() + geom_smooth(method=lm)
+
+
+
+
+summary(lm(mean_reviews~mean_price,data=zip_credit)) #linear relationship (positive slope)
+ggplot(zip_credit, aes(x=mean_price, y=mean_reviews)) + geom_point() + geom_smooth(method=lm)
+
+
+
+summary(lm(mean_star~mean_reviews,data=zip_credit)) #linear relationship (positive slope)
+ggplot(zip_credit, aes(x=mean_reviews, y=mean_star)) + geom_point() + geom_smooth(method=lm)
+
+
+
+summary(lm(mean_star~median_reviews,data=zip_credit)) #linear relationship (positive slope)
+ggplot(zip_credit, aes(x=median_reviews, y=mean_star)) + geom_point() + geom_smooth(method=lm)
+
+
+###################################################
+
+```
+
+We can summerize these relationships in the following figure: 
+
+
+
+![alt text](http://i61.tinypic.com/2nm3lgy.jpg)
+
+
+

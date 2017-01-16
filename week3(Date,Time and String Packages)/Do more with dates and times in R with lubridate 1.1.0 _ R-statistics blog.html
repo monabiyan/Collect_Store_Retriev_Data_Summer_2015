@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en-US" class="no-js">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width">
+	<link rel="profile" href="http://gmpg.org/xfn/11">
+	<link rel="pingback" href="http://www.r-statistics.com/xmlrpc.php">
+	<!--[if lt IE 9]>
+	<script src="http://www.r-statistics.com/wp-content/themes/twentyfifteen/js/html5.js"></script>
+	<![endif]-->
+	<script>(function(html){html.className = html.className.replace(/\bno-js\b/,'js')})(document.documentElement);</script>
+<title>Do more with dates and times in R with lubridate 1.1.0 | R-statistics blog</title>
+<!-- Jetpack Site Verification Tags -->
+<meta name="google-site-verification" content="JzirhBYyTRiZNqv2qJmqQNS95CRZFPTMP-qqlIwvfiM" />
+
+<!-- All in One SEO Pack 2.2.6.2 by Michael Torbert of Semper Fi Web Design[506,587] -->
+<meta name="description" itemprop="description" content="This is a guest post by Garrett Grolemund (mentored by Hadley Wickham) Lubridate is an R package that makes it easier to work with dates and times. The newest" />
+
+<meta name="keywords" itemprop="keywords" content="dates,garrett grolemund,garrett groleund,hadley wickham,library,lubridate,package,r" />
+
+<link rel="canonical" href="http://www.r-statistics.com/2012/03/do-more-with-dates-and-times-in-r-with-lubridate-1-1-0/" />
+<!-- /all in one seo pack -->
+<link rel="alternate" type="application/rss+xml" title="R-statistics blog &raquo; Feed" href="http://www.r-statistics.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="R-statistics blog &raquo; Comments Feed" href="http://www.r-statistics.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="R-statistics blog &raquo; Do more with dates and times in R with lubridate 1.1.0 Comments Feed" href="http://www.r-statistics.com/2012/03/do-more-with-dates-and-times-in-r-with-lubridate-1-1-0/feed/" />
+		<script type="text/javascript">
+			window._wpemojiSettings = {"baseUrl":"http:\/\/s.w.org\/images\/core\/emoji\/72x72\/","ext":".png","source":{"concatemoji":"http:\/\/www.r-statistics.com\/wp-includes\/js\/wp-emoji-release.min.js?ver=4.2.2"}};
+			!function(a,b,c){function d(a){var c=b.createElement("canvas"),d=c.getContext&&c.getContext("2d");return d&&d.fillText?(d.textBaseline="top",d.font="600 32px Arial","flag"===a?(d.fillText(String.fromCharCode(55356,56812,55356,56807),0,0),c.toDataURL().length>3e3):(d.fillText(String.fromCharCode(55357,56835),0,0),0!==d.getImageData(16,16,1,1).data[0])):!1}function e(a){var c=b.createElement("script");c.src=a,c.type="text/javascript",b.getElementsByTagName("head")[0].appendChild(c)}var f,g;c.supports={simple:d("simple"),flag:d("flag")},c.DOMReady=!1,c.readyCallback=function(){c.DOMReady=!0},c.supports.simple&&c.supports.flag||(g=function(){c.readyCallback()},b.addEventListener?(b.addEventListener("DOMContentLoaded",g,!1),a.addEventListener("load",g,!1)):(a.attachEvent("onload",g),b.attachEvent("onreadystatechange",function(){"complete"===b.readyState&&c.readyCallback()})),f=c.source||{},f.concatemoji?e(f.concatemoji):f.wpemoji&&f.twemoji&&(e(f.twemoji),e(f.wpemoji)))}(window,document,window._wpemojiSettings);
+		</script>
+		<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 .07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+<link rel='stylesheet' id='twentyfifteen-jetpack-css'  href='http://www.r-statistics.com/wp-content/plugins/jetpack/modules/theme-tools/compat/twentyfifteen.css?ver=3.5.3' type='text/css' media='all' />
+<link rel='stylesheet' id='twentyfifteen-fonts-css'  href='//fonts.googleapis.com/css?family=Noto+Sans%3A400italic%2C700italic%2C400%2C700%7CNoto+Serif%3A400italic%2C700italic%2C400%2C700%7CInconsolata%3A400%2C700&#038;subset=latin%2Clatin-ext' type='text/css' media='all' />
+<link rel='stylesheet' id='genericons-css'  href='http://www.r-statistics.com/wp-content/plugins/jetpack/_inc/genericons/genericons/genericons.css?ver=3.1' type='text/css' media='all' />
+<link rel='stylesheet' id='twentyfifteen-style-css'  href='http://www.r-statistics.com/wp-content/themes/twentyfifteen/style.css?ver=4.2.2' type='text/css' media='all' />
+<!--[if lt IE 9]>
+<link rel='stylesheet' id='twentyfifteen-ie-css'  href='http://www.r-statistics.com/wp-content/themes/twentyfifteen/css/ie.css?ver=20141010' type='text/css' media='all' />
+<![endif]-->
+<!--[if lt IE 8]>
+<link rel='stylesheet' id='twentyfifteen-ie7-css'  href='http://www.r-statistics.com/wp-content/themes/twentyfifteen/css/ie7.css?ver=20141010' type='text/css' media='all' />
+<![endif]-->
+<link rel='stylesheet' id='jetpack_css-css'  href='http://www.r-statistics.com/wp-content/plugins/jetpack/css/jetpack.css?ver=3.5.3' type='text/css' media='all' />
+<link rel='stylesheet' id='codebox-css'  href='http://www.r-statistics.com/wp-content/plugins/wp-codebox/css/codebox.css?ver=0.1' type='text/css' media='screen' />
+<!-- This site uses the Google Analytics by Yoast plugin v5.4.2 - Universal enabled - https://yoast.com/wordpress/plugins/google-analytics/ -->
+<script type="text/javascript">
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','__gaTracker');
+
+	__gaTracker('create', 'UA-419807-42', 'auto');
+	__gaTracker('set', 'forceSSL', true);
+	__gaTracker('send','pageview');
+
+</script>
+<!-- / Google Analytics by Yoast -->
+<script type='text/javascript' src='http://www.r-statistics.com/wp-includes/js/jquery/jquery.js?ver=1.11.2'></script>
+<script type='text/javascript' src='http://www.r-statistics.com/wp-includes/js/jquery/jquery-migrate.min.js?ver=1.2.1'></script>
+<script type='text/javascript' src='http://www.r-statistics.com/wp-content/plugins/jetpack/modules/related-posts/related-posts.js?ver=20150408'></script>
+<script type='text/javascript' src='http://www.r-statistics.com/wp-content/plugins/wp-codebox/js/codebox.js?ver=0.1'></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://www.r-statistics.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://www.r-statistics.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='prev' title='Printing nested tables in R – bridging between the {reshape} and {tables} packages' href='http://www.r-statistics.com/2012/01/printing-nested-tables-in-r-bridging-between-the-reshape-and-tables-packages/' />
+<link rel='next' title='Speed up your R code using a just-in-time (JIT) compiler' href='http://www.r-statistics.com/2012/04/speed-up-your-r-code-using-a-just-in-time-jit-compiler/' />
+<meta name="generator" content="WordPress 4.2.2" />
+<link rel='shortlink' href='http://wp.me/pVOqm-fLs' />
+<!-- This site is powered by Tweet, Like, Plusone and Share Plugin - http://techxt.com/tweet-like-google-1-and-share-plugin-wordpress/ -->
+		<meta property="og:type" content="article" />
+		<meta property="og:title" content="Do more with dates and times in R with lubridate 1.1.0" />
+		<meta property="og:url" content="http://www.r-statistics.com/2012/03/do-more-with-dates-and-times-in-r-with-lubridate-1-1-0/"/>
+		<meta property="og:site_name" content="R-statistics blog" />
+		<meta property="og:description" content="This is a guest post by Garrett Grolemund (mentored by Hadley Wickham)
+
+
+Lubridate is an R package that makes it easier to work with dates and times. The newest"/>
+		<!--[if lt IE 9]>
+	  <script src="//html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+			<style type="text/css">div.socialicons{float:left;display:block;margin-right: 10px;line-height: 1;}div.socialiconsv{line-height: 1;}div.socialicons p{margin-bottom: 0px !important;margin-top: 0px !important;padding-bottom: 0px !important;padding-top: 0px !important;}div.social4iv{background: none repeat scroll 0 0 #FFFFFF;border: 1px solid #aaa;border-radius: 3px 3px 3px 3px;box-shadow: 3px 3px 3px #DDDDDD;padding: 3px;position: fixed;text-align: center;top: 55px;width: 68px;display:none;}div.socialiconsv{padding-bottom: 5px;}</style>
+<script type="text/javascript" src="https://platform.twitter.com/widgets.js"></script><script type="text/javascript" src="//connect.facebook.net/en_US/all.js#xfbml=1"></script><script type="text/javascript" src="https://apis.google.com/js/plusone.js"></script><script type="text/javascript" src="https://platform.linkedin.com/in.js"></script>
+<link rel='dns-prefetch' href='//jetpack.wordpress.com'>
+<link rel='dns-prefetch' href='//s0.wp.com'>
+<link rel='dns-prefetch' href='//s1.wp.com'>
+<link rel='dns-prefetch' href='//s2.wp.com'>
+<link rel='dns-prefetch' href='//public-api.wordpress.com'>
+<link rel='dns-prefetch' href='//0.gravatar.com'>
+<link rel='dns-prefetch' href='//1.gravatar.com'>
+<link rel='dns-prefetch' href='//2.gravatar.com'>
+<link rel='dns-prefetch' href='//i0.wp.com'>
+<link rel='dns-prefetch' href='//i1.wp.com'>
+<link rel='dns-prefetch' href='//i2.wp.com'>
+<style type='text/css'>img#wpstats{display:none}</style>	<style type="text/css">.recentcomments a{display:inline !important;padding:0 !important;margin:0 !important;}</style>
+</head>
+
+<body class="single single-post postid-60602 single-format-standard">
+<div id="page" class="hfeed site">
+	<a class="skip-link screen-reader-text" href="#content">Skip to content</a>
+
+	<div id="sidebar" class="sidebar">
+		<header id="masthead" class="site-header" role="banner">
+			<div class="site-branding">
+										<p class="site-title"><a href="http://www.r-statistics.com/" rel="home">R-statistics blog</a></p>
+											<p class="site-description">Statistics with R, and open source stuff (software, data, community)</p>
+									<button class="secondary-toggle">Menu and widgets</button>
+			</div><!-- .site-branding -->
+		</header><!-- .site-header -->
+
+			<div id="secondary" class="secondary">
+
+					<nav id="site-navigation" class="main-navigation" role="navigation">
+				<div class="menu-top-container"><ul id="menu-top" class="nav-menu"><li id="menu-item-61226" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-61226"><a href="http://174.132.200.226/~rstatis/" onclick="__gaTracker('send', 'event', 'outbound-widget', 'http://174.132.200.226/~rstatis/', 'Home');">Home</a></li>
+<li id="menu-item-61225" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-61225"><a href="http://www.r-statistics.com/about/">About</a></li>
+<li id="menu-item-61223" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-61223"><a href="http://www.r-statistics.com/all-articles/">All articles</a></li>
+<li id="menu-item-61224" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-61224"><a href="http://www.r-statistics.com/contact-me/">Contact me</a></li>
+</ul></div>			</nav><!-- .main-navigation -->
+		
+		
+					<div id="widget-area" class="widget-area" role="complementary">
+				<aside id="text-2" class="widget widget_text"><h2 class="widget-title">e-mail subscription</h2>			<div class="textwidget"><form style="border:1px solid #ccc;padding:3px;text-align:center;" action="http://feedburner.google.com/fb/a/mailverify" method="post" target="popupwindow" onsubmit="window.open(&#39;http://feedburner.google.com/fb/a/mailverify?uri=R-statistics&#39;, &#39;popupwindow&#39;, &#39;scrollbars=yes,width=550,height=520&#39;);return true">
+<input type="text" style="width:110px" onclick="if (this.value == &#39;Your e-mail here&#39;) this.value = &#39;&#39;;" value="Your e-mail here" name="email">
+<input type="hidden" value="R-statistics" name="uri"><input type="hidden" name="loc" value="en_US"><input type="submit" value="Subscribe">
+
+<a href="http://feeds.feedburner.com/R-statistics" onclick="__gaTracker('send', 'event', 'outbound-widget', 'http://feeds.feedburner.com/R-statistics', '');"><img class="lazy lazy-hidden" src="data:image/gif;base64,R0lGODdhAQABAPAAAP///wAAACwAAAAAAQABAEACAkQBADs=" data-lazy-type="image" data-lazy-src="http://feeds.feedburner.com/~fc/R-statistics?bg=99CCFF&amp;fg=444444&amp;anim=0" height="26" width="88" style="border:0" alt="" /><noscript><img src="http://feeds.feedburner.com/~fc/R-statistics?bg=99CCFF&amp;fg=444444&amp;anim=0" height="26" width="88" style="border:0" alt="" /></noscript></a>
+</form>
+</div>
+		</aside><aside id="search-2" class="widget widget_search"><form role="search" method="get" class="search-form" action="http://www.r-statistics.com/">
+				<label>
+					<span class="screen-reader-text">Search for:</span>
+					<input type="search" class="search-field" placeholder="Search &hellip;" value="" name="s" title="Search for:" />
+				</label>
+				<input type="submit" class="search-submit screen-reader-text" value="Search" />
+			</form></aside>		<aside id="recent-posts-2" class="widget widget_recent_entries">		<h2 class="widget-title">Recent Posts</h2>		<ul>
+					<li>
+				<a href="http://www.r-statistics.com/2015/04/r-3-2-0-is-released-using-the-installr-package-to-upgrade-in-windows-os/">R 3.2.0 is released (+ using the installr package to upgrade in Windows OS)</a>
+						</li>
+					<li>
+				<a href="http://www.r-statistics.com/2015/03/israels-2015-election-polls-analysis-with-shiny-ggplot2/">Israel&#8217;s 2015 election polls&#8217; analysis with Shiny + ggplot2</a>
+						</li>
+					<li>
+				<a href="http://www.r-statistics.com/2015/03/r-3-1-3-is-released-easy-upgrading-for-windows-users-with-the-installr-package/">R 3.1.3 is released (+ easy upgrading for Windows users with the installr package)</a>
+						</li>
+					<li>
+				<a href="http://www.r-statistics.com/2014/11/the-ensurer-package-validation-inside-pipes/">The ensurer package (validation inside pipes)</a>
+						</li>
+					<li>
+				<a href="http://www.r-statistics.com/2014/11/analyzing-coverage-of-r-unit-tests-in-packages-the-testcoverage-package/">Analyzing coverage of R unit tests in packages &#8211; the {testCoverage} package</a>
+						</li>
+				</ul>
+		</aside><aside id="recent-comments-2" class="widget widget_recent_comments"><h2 class="widget-title">Recent Comments</h2><ul id="recentcomments"><li class="recentcomments"><span class="comment-author-link">amos</span> on <a href="http://www.r-statistics.com/2013/01/stargazer-package-for-beautiful-latex-tables-from-r-statistical-models-output/#comment-1682">{stargazer} package for beautiful LaTeX tables from R statistical models output</a></li><li class="recentcomments"><span class="comment-author-link">Alex</span> on <a href="http://www.r-statistics.com/2011/01/how-to-label-all-the-outliers-in-a-boxplot/#comment-1678">How to label all the outliers in a boxplot</a></li><li class="recentcomments"><span class="comment-author-link"><a href='http://www.facebook.com/787047529' rel='external nofollow' class='url'>Alex Zolotovitski</a></span> on <a href="http://www.r-statistics.com/2013/09/a-speed-test-comparison-of-plyr-data-table-and-dplyr/#comment-1676">A speed test comparison of plyr, data.table, and dplyr</a></li><li class="recentcomments"><span class="comment-author-link">Maiky</span> on <a href="http://www.r-statistics.com/2012/08/how-to-load-the-rjava-package-after-the-error-java_home-cannot-be-determined-from-the-registry/#comment-1671">How to load the {rJava} package after the error &quot;JAVA_HOME cannot be determined from the Registry&quot;</a></li><li class="recentcomments"><span class="comment-author-link">Michael</span> on <a href="http://www.r-statistics.com/2013/01/stargazer-package-for-beautiful-latex-tables-from-r-statistical-models-output/#comment-1668">{stargazer} package for beautiful LaTeX tables from R statistical models output</a></li></ul></aside><aside id="archives-2" class="widget widget_archive"><h2 class="widget-title">Archives</h2>		<label class="screen-reader-text" for="archives-dropdown-2">Archives</label>
+		<select id="archives-dropdown-2" name="archive-dropdown" onchange='document.location.href=this.options[this.selectedIndex].value;'>
+			
+			<option value="">Select Month</option>
+				<option value='http://www.r-statistics.com/2015/04/'> April 2015 </option>
+	<option value='http://www.r-statistics.com/2015/03/'> March 2015 </option>
+	<option value='http://www.r-statistics.com/2014/11/'> November 2014 </option>
+	<option value='http://www.r-statistics.com/2014/08/'> August 2014 </option>
+	<option value='http://www.r-statistics.com/2014/07/'> July 2014 </option>
+	<option value='http://www.r-statistics.com/2014/04/'> April 2014 </option>
+	<option value='http://www.r-statistics.com/2014/03/'> March 2014 </option>
+	<option value='http://www.r-statistics.com/2013/12/'> December 2013 </option>
+	<option value='http://www.r-statistics.com/2013/09/'> September 2013 </option>
+	<option value='http://www.r-statistics.com/2013/08/'> August 2013 </option>
+	<option value='http://www.r-statistics.com/2013/07/'> July 2013 </option>
+	<option value='http://www.r-statistics.com/2013/06/'> June 2013 </option>
+	<option value='http://www.r-statistics.com/2013/05/'> May 2013 </option>
+	<option value='http://www.r-statistics.com/2013/04/'> April 2013 </option>
+	<option value='http://www.r-statistics.com/2013/03/'> March 2013 </option>
+	<option value='http://www.r-statistics.com/2013/02/'> February 2013 </option>
+	<option value='http://www.r-statistics.com/2013/01/'> January 2013 </option>
+	<option value='http://www.r-statistics.com/2012/12/'> December 2012 </option>
+	<option value='http://www.r-statistics.com/2012/11/'> November 2012 </option>
+	<option value='http://www.r-statistics.com/2012/08/'> August 2012 </option>
+	<option value='http://www.r-statistics.com/2012/05/'> May 2012 </option>
+	<option value='http://www.r-statistics.com/2012/04/'> April 2012 </option>
+	<option value='http://www.r-statistics.com/2012/03/'> March 2012 </option>
+	<option value='http://www.r-statistics.com/2012/01/'> January 2012 </option>
+	<option value='http://www.r-statistics.com/2011/12/'> December 2011 </option>
+	<option value='http://www.r-statistics.com/2011/11/'> November 2011 </option>
+	<option value='http://www.r-statistics.com/2011/10/'> October 2011 </option>
+	<option value='http://www.r-statistics.com/2011/08/'> August 2011 </option>
+	<option value='http://www.r-statistics.com/2011/06/'> June 2011 </option>
+	<option value='http://www.r-statistics.com/2011/04/'> April 2011 </option>
+	<option value='http://www.r-statistics.com/2011/03/'> March 2011 </option>
+	<option value='http://www.r-statistics.com/2011/02/'> February 2011 </option>
+	<option value='http://www.r-statistics.com/2011/01/'> January 2011 </option>
+	<option value='http://www.r-statistics.com/2010/12/'> December 2010 </option>
+	<option value='http://www.r-statistics.com/2010/10/'> October 2010 </option>
+	<option value='http://www.r-statistics.com/2010/09/'> September 2010 </option>
+	<option value='http://www.r-statistics.com/2010/08/'> August 2010 </option>
+	<option value='http://www.r-statistics.com/2010/07/'> July 2010 </option>
+	<option value='http://www.r-statistics.com/2010/06/'> June 2010 </option>
+	<option value='http://www.r-statistics.com/2010/05/'> May 2010 </option>
+	<option value='http://www.r-statistics.com/2010/04/'> April 2010 </option>
+	<option value='http://www.r-statistics.com/2010/03/'> March 2010 </option>
+	<option value='http://www.r-statistics.com/2010/02/'> February 2010 </option>
+	<option value='http://www.r-statistics.com/2009/12/'> December 2009 </option>
+	<option value='http://www.r-statistics.com/2009/10/'> October 2009 </option>
+	<option value='http://www.r-statistics.com/2009/09/'> September 2009 </option>
+	<option value='http://www.r-statistics.com/2009/07/'> July 2009 </option>
+	<option value='http://www.r-statistics.com/2009/03/'> March 2009 </option>
+
+		</select>
+</aside><aside id="categories-2" class="widget widget_categories"><h2 class="widget-title">Categories</h2>		<ul>
+	<li class="cat-item cat-item-2"><a href="http://www.r-statistics.com/category/guest-post/" >Guest Post</a>
+</li>
+	<li class="cat-item cat-item-3"><a href="http://www.r-statistics.com/category/r/" >R</a>
+</li>
+	<li class="cat-item cat-item-4"><a href="http://www.r-statistics.com/category/r-and-the-web/" >R and the web</a>
+</li>
+	<li class="cat-item cat-item-5"><a href="http://www.r-statistics.com/category/r-bloggers/" >R bloggers</a>
+</li>
+	<li class="cat-item cat-item-6"><a href="http://www.r-statistics.com/category/r-community/" >R community</a>
+</li>
+	<li class="cat-item cat-item-7"><a href="http://www.r-statistics.com/category/r-links/" >R links</a>
+</li>
+	<li class="cat-item cat-item-8"><a href="http://www.r-statistics.com/category/r-programming/" >R programming</a>
+</li>
+	<li class="cat-item cat-item-9"><a href="http://www.r-statistics.com/category/reproducible-research/" >Reproducible Research</a>
+</li>
+	<li class="cat-item cat-item-10"><a href="http://www.r-statistics.com/category/statistics/" >statistics</a>
+</li>
+	<li class="cat-item cat-item-11"><a href="http://www.r-statistics.com/category/ubuntu/" >ubuntu</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="http://www.r-statistics.com/category/uncategorized/" >Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-12"><a href="http://www.r-statistics.com/category/visualization/" >visualization</a>
+</li>
+		</ul>
+</aside><aside id="tag_cloud-2" class="widget widget_tag_cloud"><h2 class="widget-title">Tags</h2><div class="tagcloud"><a href='http://www.r-statistics.com/tag/anova/' class='tag-link-37' title='3 topics' style='font-size: 8pt;'>ANOVA</a>
+<a href='http://www.r-statistics.com/tag/blogging/' class='tag-link-63' title='3 topics' style='font-size: 8pt;'>blogging</a>
+<a href='http://www.r-statistics.com/tag/cloud-computing/' class='tag-link-87' title='4 topics' style='font-size: 9.0071942446pt;'>cloud computing</a>
+<a href='http://www.r-statistics.com/tag/code/' class='tag-link-93' title='8 topics' style='font-size: 11.5251798561pt;'>code</a>
+<a href='http://www.r-statistics.com/tag/data-frame/' class='tag-link-114' title='4 topics' style='font-size: 9.0071942446pt;'>data frame</a>
+<a href='http://www.r-statistics.com/tag/deducer/' class='tag-link-126' title='5 topics' style='font-size: 9.81294964029pt;'>deducer</a>
+<a href='http://www.r-statistics.com/tag/featured/' class='tag-link-154' title='6 topics' style='font-size: 10.5179856115pt;'>featured</a>
+<a href='http://www.r-statistics.com/tag/ggplot2/' class='tag-link-181' title='13 topics' style='font-size: 13.5395683453pt;'>ggplot2</a>
+<a href='http://www.r-statistics.com/tag/gui/' class='tag-link-201' title='5 topics' style='font-size: 9.81294964029pt;'>GUI</a>
+<a href='http://www.r-statistics.com/tag/hadley-wickham/' class='tag-link-204' title='8 topics' style='font-size: 11.5251798561pt;'>Hadley Wickham</a>
+<a href='http://www.r-statistics.com/tag/installr/' class='tag-link-229' title='13 topics' style='font-size: 13.5395683453pt;'>installr</a>
+<a href='http://www.r-statistics.com/tag/interfaces/' class='tag-link-232' title='6 topics' style='font-size: 10.5179856115pt;'>interfaces</a>
+<a href='http://www.r-statistics.com/tag/latex/' class='tag-link-263' title='3 topics' style='font-size: 8pt;'>LaTex</a>
+<a href='http://www.r-statistics.com/tag/package/' class='tag-link-329' title='7 topics' style='font-size: 11.0215827338pt;'>package</a>
+<a href='http://www.r-statistics.com/tag/packages/' class='tag-link-330' title='9 topics' style='font-size: 12.0287769784pt;'>packages</a>
+<a href='http://www.r-statistics.com/tag/performance/' class='tag-link-339' title='3 topics' style='font-size: 8pt;'>performance</a>
+<a href='http://www.r-statistics.com/tag/plyr/' class='tag-link-347' title='5 topics' style='font-size: 9.81294964029pt;'>plyr</a>
+<a href='http://www.r-statistics.com/tag/r/' class='tag-link-363' title='97 topics' style='font-size: 22pt;'>R</a>
+<a href='http://www.r-statistics.com/tag/r-and-the-web/' class='tag-link-373' title='8 topics' style='font-size: 11.5251798561pt;'>R and the web</a>
+<a href='http://www.r-statistics.com/tag/r-bloggers/' class='tag-link-377' title='3 topics' style='font-size: 8pt;'>R bloggers</a>
+<a href='http://www.r-statistics.com/tag/r-book/' class='tag-link-381' title='3 topics' style='font-size: 8pt;'>R book</a>
+<a href='http://www.r-statistics.com/tag/r-code/' class='tag-link-386' title='9 topics' style='font-size: 12.0287769784pt;'>R code</a>
+<a href='http://www.r-statistics.com/tag/r-community/' class='tag-link-387' title='13 topics' style='font-size: 13.5395683453pt;'>R community</a>
+<a href='http://www.r-statistics.com/tag/r-gui/' class='tag-link-398' title='6 topics' style='font-size: 10.5179856115pt;'>R GUI</a>
+<a href='http://www.r-statistics.com/tag/r-links/' class='tag-link-407' title='4 topics' style='font-size: 9.0071942446pt;'>R links</a>
+<a href='http://www.r-statistics.com/tag/r-package/' class='tag-link-415' title='5 topics' style='font-size: 9.81294964029pt;'>R package</a>
+<a href='http://www.r-statistics.com/tag/r-packages/' class='tag-link-416' title='4 topics' style='font-size: 9.0071942446pt;'>R packages</a>
+<a href='http://www.r-statistics.com/tag/stackoverflow/' class='tag-link-508' title='5 topics' style='font-size: 9.81294964029pt;'>stackoverflow</a>
+<a href='http://www.r-statistics.com/tag/statistics/' class='tag-link-522' title='20 topics' style='font-size: 15.2517985612pt;'>statistics</a>
+<a href='http://www.r-statistics.com/tag/sweave/' class='tag-link-545' title='3 topics' style='font-size: 8pt;'>sweave</a>
+<a href='http://www.r-statistics.com/tag/syntax-highlight/' class='tag-link-546' title='3 topics' style='font-size: 8pt;'>syntax highlight</a>
+<a href='http://www.r-statistics.com/tag/tables/' class='tag-link-547' title='3 topics' style='font-size: 8pt;'>tables</a>
+<a href='http://www.r-statistics.com/tag/tutorial/' class='tag-link-570' title='9 topics' style='font-size: 12.0287769784pt;'>tutorial</a>
+<a href='http://www.r-statistics.com/tag/tutorials/' class='tag-link-571' title='3 topics' style='font-size: 8pt;'>tutorials</a>
+<a href='http://www.r-statistics.com/tag/uncategorized/' class='tag-link-573' title='3 topics' style='font-size: 8pt;'>Uncategorized</a>
+<a href='http://www.r-statistics.com/tag/update/' class='tag-link-574' title='3 topics' style='font-size: 8pt;'>update</a>
+<a href='http://www.r-statistics.com/tag/upgrade/' class='tag-link-577' title='3 topics' style='font-size: 8pt;'>upgrade</a>
+<a href='http://www.r-statistics.com/tag/upgrading-r/' class='tag-link-579' title='4 topics' style='font-size: 9.0071942446pt;'>upgrading R</a>
+<a href='http://www.r-statistics.com/tag/user/' class='tag-link-581' title='5 topics' style='font-size: 9.81294964029pt;'>useR</a>
+<a href='http://www.r-statistics.com/tag/visualization/' class='tag-link-593' title='20 topics' style='font-size: 15.2517985612pt;'>visualization</a>
+<a href='http://www.r-statistics.com/tag/windows/' class='tag-link-613' title='5 topics' style='font-size: 9.81294964029pt;'>windows</a>
+<a href='http://www.r-statistics.com/tag/windows-7/' class='tag-link-614' title='3 topics' style='font-size: 8pt;'>windows 7</a>
+<a href='http://www.r-statistics.com/tag/wordpress/' class='tag-link-619' title='7 topics' style='font-size: 11.0215827338pt;'>wordpress</a>
+<a href='http://www.r-statistics.com/tag/wordpress-plugin/' class='tag-link-621' title='3 topics' style='font-size: 8pt;'>wordpress plugin</a>
+<a href='http://www.r-statistics.com/tag/youtube/' class='tag-link-625' title='5 topics' style='font-size: 9.81294964029pt;'>youtube</a></div>
+</aside>			</div><!-- .widget-area -->
+		
+	</div><!-- .secondary -->
+
+	</div><!-- .sidebar -->
+
+	<div id="content" class="site-content">
+
+	<div id="primary" class="content-area">
+		<main id="main" class="site-main" role="main">
+
+		
+<article id="post-60602" class="post-60602 post type-post status-publish format-standard hentry category-r category-r-programming tag-dates tag-garrett-grolemund tag-garrett-groleund tag-hadley-wickham tag-library tag-lubridate tag-package tag-r">
+	
+	<header class="entry-header">
+		<h1 class="entry-title">Do more with dates and times in R with lubridate 1.1.0</h1>	</header><!-- .entry-header -->
+
+	<div class="entry-content">
+		<div class="social4i" style="height:82px;">
+<div class="social4in" style="height:82px;float: left;">
+<div class="socialicons s4twitter" style="float:left;margin-right: 10px;"><a href="https://twitter.com/share" onclick="__gaTracker('send', 'event', 'outbound-article', 'https://twitter.com/share', '');" data-url="http://www.r-statistics.com/2012/03/do-more-with-dates-and-times-in-r-with-lubridate-1-1-0/" data-counturl="http://www.r-statistics.com/2012/03/do-more-with-dates-and-times-in-r-with-lubridate-1-1-0/" data-text="Do more with dates and times in R with lubridate 1.1.0" class="twitter-share-button" data-count="vertical" data-via=""></a></div>
+<div class="socialicons s4fblike" style="float:left;margin-right: 10px;">
+<div class="fb-like" data-href="http://www.r-statistics.com/2012/03/do-more-with-dates-and-times-in-r-with-lubridate-1-1-0/" data-send="true"  data-layout="box_count" data-width="55" data-height="62"  data-show-faces="false"></div>
+</div>
+</div>
+<div style="clear:both"></div>
+</div>
+<p>This is a guest post by Garrett Grolemund (mentored by <a href="http://had.co.nz/" onclick="__gaTracker('send', 'event', 'outbound-article', 'http://had.co.nz/', 'Hadley Wickham');">Hadley Wickham</a>)</p>
+<p>Lubridate is an R package that makes it easier to work with dates and times. The newest release of lubridate (v 1.1.0) comes with even more tools and some significant changes over past versions. Below is a concise tour of some of the things lubridate can do for you. At the end of this post, I list some of the differences between lubridate (v 0.2.4) and lubridate (v 1.1.0). If you are an old hand at lubridate, please read this section to avoid surprises!</p>
+<p>Lubridate was created by Garrett Grolemund and Hadley Wickham.</p>
+<h2>Parsing dates and times</h2>
+<p>Getting R to agree that your data contains the dates and times you think it does can be a bit tricky. Lubridate simplifies that. Identify the order in which the year, month, and day appears in your dates. Now arrange “y”, “m”, and “d” in the same order. This is the name of the function in lubridate that will parse your dates. For example,</p>
+
+<div class="wp_codebox"><table><tr id="p606021"><td class="code" id="p60602code1"><pre class="rsplus" style="font-family:monospace;"><span style="color: #0000FF; font-weight: bold;">library</span><span style="color: #080;">&#40;</span>lubridate<span style="color: #080;">&#41;</span>
+ymd<span style="color: #080;">&#40;</span><span style="color: #ff0000;">&quot;20110604&quot;</span><span style="color: #080;">&#41;</span><span style="color: #080;">;</span> mdy<span style="color: #080;">&#40;</span><span style="color: #ff0000;">&quot;06-04-2011&quot;</span><span style="color: #080;">&#41;</span><span style="color: #080;">;</span> dmy<span style="color: #080;">&#40;</span><span style="color: #ff0000;">&quot;04/06/2011&quot;</span><span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## &quot;2011-06-04 UTC&quot;</span>
+<span style="color: #228B22;">## &quot;2011-06-04 UTC&quot;</span>
+<span style="color: #228B22;">## &quot;2011-06-04 UTC&quot;</span></pre></td></tr></table></div>
+
+<p>Parsing functions automatically handle a wide variety of formats and separators, which simplifies the parsing process.</p>
+<p>If your date includes time information, add h, m, and/or s to the name of the function. ymd_hms() is probably the most common date time format. To read the dates in with a certain time zone, supply the official name of that time zone in the tz argument.</p>
+
+<div class="wp_codebox"><table><tr id="p606022"><td class="code" id="p60602code2"><pre class="rsplus" style="font-family:monospace;">arrive <span style="color: #080;">&lt;-</span> ymd_hms<span style="color: #080;">&#40;</span><span style="color: #ff0000;">&quot;2011-06-04 12:00:00&quot;</span>, tz <span style="color: #080;">=</span> <span style="color: #ff0000;">&quot;Pacific/Auckland&quot;</span><span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## &quot;2011-06-04 12:00:00 NZST&quot;</span>
+leave <span style="color: #080;">&lt;-</span> ymd_hms<span style="color: #080;">&#40;</span><span style="color: #ff0000;">&quot;2011-08-10 14:00:00&quot;</span>, tz <span style="color: #080;">=</span> <span style="color: #ff0000;">&quot;Pacific/Auckland&quot;</span><span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## &quot;2011-08-10 14:00:00 NZST&quot;</span></pre></td></tr></table></div>
+
+<h2>Setting and Extracting information</h2>
+<p>Extract information from date times with the functions second(), minute(), hour(), day(), wday(), yday(), week(), month(), year(), and tz(). You can also use each of these to set (i.e, change) the given information. Notice that this will alter the date time. wday() and month() have an optional label argument, which replaces their numeric output with the name of the weekday or month.</p>
+
+<div class="wp_codebox"><table><tr id="p606023"><td class="code" id="p60602code3"><pre class="rsplus" style="font-family:monospace;">second<span style="color: #080;">&#40;</span>arrive<span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## 0</span>
+second<span style="color: #080;">&#40;</span>arrive<span style="color: #080;">&#41;</span> <span style="color: #080;">&lt;-</span> <span style="color: #ff0000;">25</span>
+arrive
+<span style="color: #228B22;">## &quot;2011-06-04 12:00:25 NZST&quot;</span>
+second<span style="color: #080;">&#40;</span>arrive<span style="color: #080;">&#41;</span> <span style="color: #080;">&lt;-</span> <span style="color: #ff0000;">0</span>
+wday<span style="color: #080;">&#40;</span>arrive<span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## 7</span>
+wday<span style="color: #080;">&#40;</span>arrive, label <span style="color: #080;">=</span> TRUE<span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## Sat</span></pre></td></tr></table></div>
+
+<h2>Time Zones</h2>
+<p>There are two very useful things to do with dates and time zones. First, display the same moment in a different time zone. Second, create a new moment by combining a given clock time with a new time zone. These are accomplished by with_tz() and force_tz().</p>
+<p>For example, I spent last summer researching in Auckland, New Zealand. I arranged to meet with my advisor, Hadley, over skype at 9:00 in the morning Auckland time. What time was that for Hadley who was back in Houston, TX?</p>
+
+<div class="wp_codebox"><table><tr id="p606024"><td class="code" id="p60602code4"><pre class="rsplus" style="font-family:monospace;">meeting <span style="color: #080;">&lt;-</span> ymd_hms<span style="color: #080;">&#40;</span><span style="color: #ff0000;">&quot;2011-07-01 09:00:00&quot;</span>, tz <span style="color: #080;">=</span> <span style="color: #ff0000;">&quot;Pacific/Auckland&quot;</span><span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## &quot;2011-07-01 09:00:00 NZST&quot;</span>
+with_tz<span style="color: #080;">&#40;</span>meeting, <span style="color: #ff0000;">&quot;America/Chicago&quot;</span><span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## &quot;2011-06-30 16:00:00 CDT&quot;</span></pre></td></tr></table></div>
+
+<p>So the meetings occurred at 4:00 Hadley’s time (and the day before no less). Of course, this was the same actual moment of time as 9:00 in New Zealand. It just appears to be a different day due to the curvature of the Earth.</p>
+<p>What if Hadley made a mistake and signed on at 9:00 his time? What time would it then be my time?</p>
+
+<div class="wp_codebox"><table><tr id="p606025"><td class="code" id="p60602code5"><pre class="rsplus" style="font-family:monospace;">mistake <span style="color: #080;">&lt;-</span> force_tz<span style="color: #080;">&#40;</span>meeting, <span style="color: #ff0000;">&quot;America/Chicago&quot;</span><span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## &quot;2011-07-01 09:00:00 CDT&quot;</span>
+with_tz<span style="color: #080;">&#40;</span>mistake, <span style="color: #ff0000;">&quot;Pacific/Auckland&quot;</span><span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## &quot;2011-07-02 02:00:00 NZST&quot;</span></pre></td></tr></table></div>
+
+<p>His call would arrive at 2:00 am my time! Luckily he never did that.</p>
+<p><span id="more-60602"></span></p>
+<h2>Time Intervals</h2>
+<p>You can save an interval of time as an Interval class object. This is quite useful! For example, my stay in Auckland lasted from June 4 to August 10 (which we’ve already saved as arrive and leave). We can create this interval in one of two ways:</p>
+
+<div class="wp_codebox"><table><tr id="p606026"><td class="code" id="p60602code6"><pre class="rsplus" style="font-family:monospace;">auckland <span style="color: #080;">&lt;-</span> interval<span style="color: #080;">&#40;</span>arrive, leave<span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## 2011-06-04 12:00:00 NZST--2011-08-10 14:00:00 NZST</span>
+auckland <span style="color: #080;">&lt;-</span> arrive <span style="color: #080;">%--%</span> leave
+<span style="color: #228B22;">## 2011-06-04 12:00:00 NZST--2011-08-10 14:00:00 NZST</span></pre></td></tr></table></div>
+
+<p>My mentor at the University of Auckland, Chris, traveled to various conferences that year including the Joint Statistical Meetings (JSM). This took him out of the country from July 20 until the end of August.</p>
+
+<div class="wp_codebox"><table><tr id="p606027"><td class="code" id="p60602code7"><pre class="rsplus" style="font-family:monospace;">jsm <span style="color: #080;">&lt;-</span> interval<span style="color: #080;">&#40;</span>ymd<span style="color: #080;">&#40;</span><span style="color: #ff0000;">20110720</span>, tz <span style="color: #080;">=</span> <span style="color: #ff0000;">&quot;Pacific/Auckland&quot;</span><span style="color: #080;">&#41;</span>, ymd<span style="color: #080;">&#40;</span><span style="color: #ff0000;">20110831</span>, tz <span style="color: #080;">=</span> <span style="color: #ff0000;">&quot;Pacific/Auckland&quot;</span><span style="color: #080;">&#41;</span><span style="color: #080;">&#41;</span></pre></td></tr></table></div>
+
+<p>Will my visit overlap with and his travels? Yes.</p>
+
+<div class="wp_codebox"><table><tr id="p606028"><td class="code" id="p60602code8"><pre class="rsplus" style="font-family:monospace;">int_overlaps<span style="color: #080;">&#40;</span>jsm, auckland<span style="color: #080;">&#41;</span> <span style="color: #228B22;">## TRUE</span></pre></td></tr></table></div>
+
+<p>Then I better make hay while the sun shines! For what part of my visit will Chris be there?</p>
+
+<div class="wp_codebox"><table><tr id="p606029"><td class="code" id="p60602code9"><pre class="rsplus" style="font-family:monospace;"><span style="color: #0000FF; font-weight: bold;">setdiff</span><span style="color: #080;">&#40;</span>auckland, jsm<span style="color: #080;">&#41;</span> <span style="color: #228B22;">## 2011-06-04 12:00:00 NZST–2011-07-20 NZST</span></pre></td></tr></table></div>
+
+<p>Other functions that work with intervals include int_start, int_end, int_flip, int_shift, int_aligns, union, intersect, and %within%.</p>
+<h2>Arithmetic with date times</h2>
+<p>Intervals are specific time spans (because they are tied to specific dates), but lubridate also supplies two general time span classes: durations and periods. Helper functions for creating periods are named after the units of time (plural). Helper functions for creating durations follow the same format but begin with a “d” (for duration) or, if you prefer, and “e” (for exact).</p>
+
+<div class="wp_codebox"><table><tr id="p6060210"><td class="code" id="p60602code10"><pre class="rsplus" style="font-family:monospace;">minutes<span style="color: #080;">&#40;</span><span style="color: #ff0000;">2</span><span style="color: #080;">&#41;</span> <span style="color: #228B22;"># period</span>
+<span style="color: #228B22;">## 2 minutes</span>
+dminutes<span style="color: #080;">&#40;</span><span style="color: #ff0000;">2</span><span style="color: #080;">&#41;</span> <span style="color: #228B22;"># duration</span>
+<span style="color: #228B22;">## 120s (~2 minutes)</span></pre></td></tr></table></div>
+
+<p>Why two classes? Because the timeline is not as reliable as the number line. The durations class will always supply mathematically precise results. A duration year will <em>always</em> equal 365 days. Periods, on the other hand, fluctuate the same way the timeline does to give intuitive results. This makes them useful for modelling clock times. For example, durations will be honest in the face of a leap year, but periods may return what you want:</p>
+
+<div class="wp_codebox"><table><tr id="p6060211"><td class="code" id="p60602code11"><pre class="rsplus" style="font-family:monospace;">leap_year<span style="color: #080;">&#40;</span><span style="color: #ff0000;">2011</span><span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## FALSE</span>
+ymd<span style="color: #080;">&#40;</span><span style="color: #ff0000;">20110101</span><span style="color: #080;">&#41;</span> <span style="color: #080;">+</span> dyears<span style="color: #080;">&#40;</span><span style="color: #ff0000;">1</span><span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## &quot;2012-01-01 UTC&quot;</span>
+ymd<span style="color: #080;">&#40;</span><span style="color: #ff0000;">20110101</span><span style="color: #080;">&#41;</span> <span style="color: #080;">+</span> years<span style="color: #080;">&#40;</span><span style="color: #ff0000;">1</span><span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## &quot;2012-01-01 UTC&quot;</span>
+&nbsp;
+leap_year<span style="color: #080;">&#40;</span><span style="color: #ff0000;">2012</span><span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## TRUE</span>
+ymd<span style="color: #080;">&#40;</span><span style="color: #ff0000;">20120101</span><span style="color: #080;">&#41;</span> <span style="color: #080;">+</span> dyears<span style="color: #080;">&#40;</span><span style="color: #ff0000;">1</span><span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## &quot;2012-12-31 UTC&quot;</span>
+ymd<span style="color: #080;">&#40;</span><span style="color: #ff0000;">20120101</span><span style="color: #080;">&#41;</span> <span style="color: #080;">+</span> years<span style="color: #080;">&#40;</span><span style="color: #ff0000;">1</span><span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## &quot;2013-01-01 UTC&quot;</span></pre></td></tr></table></div>
+
+<p>We can use periods and durations to do basic arithmetic with date times. For example, if I wanted to set up a reoccuring weekly skype meeting with Hadley, it would occur on:</p>
+
+<div class="wp_codebox"><table><tr id="p6060212"><td class="code" id="p60602code12"><pre class="rsplus" style="font-family:monospace;">meetings <span style="color: #080;">&lt;-</span> meeting <span style="color: #080;">+</span> weeks<span style="color: #080;">&#40;</span><span style="color: #ff0000;">0</span><span style="color: #080;">:</span><span style="color: #ff0000;">5</span><span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## [1] &quot;2011-07-01 09:00:00 NZST&quot; &quot;2011-07-08 09:00:00 NZST&quot;</span>
+<span style="color: #228B22;">## [3] &quot;2011-07-15 09:00:00 NZST&quot; &quot;2011-07-22 09:00:00 NZST&quot;</span>
+<span style="color: #228B22;">## [5] &quot;2011-07-29 09:00:00 NZST&quot; &quot;2011-08-05 09:00:00 NZST&quot;</span></pre></td></tr></table></div>
+
+<p>Hadley travelled to conferences at the same time as Chris. Which of these meetings would be affected? The last two.</p>
+
+<div class="wp_codebox"><table><tr id="p6060213"><td class="code" id="p60602code13"><pre class="rsplus" style="font-family:monospace;">meetings <span style="color: #080;">%</span>within<span style="color: #080;">%</span> jsm
+<span style="color: #228B22;">## FALSE FALSE FALSE FALSE  TRUE  TRUE</span></pre></td></tr></table></div>
+
+<p>How long was my stay in Auckland?</p>
+
+<div class="wp_codebox"><table><tr id="p6060214"><td class="code" id="p60602code14"><pre class="rsplus" style="font-family:monospace;">auckland <span style="color: #080;">/</span> edays<span style="color: #080;">&#40;</span><span style="color: #ff0000;">1</span><span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## 67.08333</span>
+auckland <span style="color: #080;">/</span> edays<span style="color: #080;">&#40;</span><span style="color: #ff0000;">2</span><span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## 33.54167</span>
+auckland <span style="color: #080;">/</span> eminutes<span style="color: #080;">&#40;</span><span style="color: #ff0000;">1</span><span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## 96600</span></pre></td></tr></table></div>
+
+<p>And so on. Alternatively, we can do modulo and integer division. Sometimes this is the more sensible than division &#8211; it is not obvious how to express a remainder as a fraction of a month because the length of a month constantly changes.</p>
+
+<div class="wp_codebox"><table><tr id="p6060215"><td class="code" id="p60602code15"><pre class="rsplus" style="font-family:monospace;">auckland <span style="color: #080;">%/%</span> <span style="color: #0000FF; font-weight: bold;">months</span><span style="color: #080;">&#40;</span><span style="color: #ff0000;">1</span><span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## 2</span>
+auckland <span style="color: #080;">%%</span> <span style="color: #0000FF; font-weight: bold;">months</span><span style="color: #080;">&#40;</span><span style="color: #ff0000;">1</span><span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## 2011-08-04 12:00:00 NZST--2011-08-10 14:00:00 NZST</span></pre></td></tr></table></div>
+
+<p>Modulo with an interval returns the remainder as a new (smaller) interval. We can turn this or any interval into a generalized time span with as.period().</p>
+
+<div class="wp_codebox"><table><tr id="p6060216"><td class="code" id="p60602code16"><pre class="rsplus" style="font-family:monospace;">as.<span style="">period</span><span style="color: #080;">&#40;</span>auckland <span style="color: #080;">%%</span> <span style="color: #0000FF; font-weight: bold;">months</span><span style="color: #080;">&#40;</span><span style="color: #ff0000;">1</span><span style="color: #080;">&#41;</span><span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## 6 days and 2 hours</span>
+as.<span style="">period</span><span style="color: #080;">&#40;</span>auckland<span style="color: #080;">&#41;</span>
+<span style="color: #228B22;">## 2 months, 6 days and 2 hours</span></pre></td></tr></table></div>
+
+<h2>Vectorization</h2>
+<p>The code in lubridate is vectorized and ready to be used in both interactive settings and within functions. As an example, I offer a function for advancing a date to the last day of the month</p>
+
+<div class="wp_codebox"><table><tr id="p6060217"><td class="code" id="p60602code17"><pre class="rsplus" style="font-family:monospace;">last_day <span style="color: #080;">&lt;-</span> <span style="color: #0000FF; font-weight: bold;">function</span><span style="color: #080;">&#40;</span><span style="color: #0000FF; font-weight: bold;">date</span><span style="color: #080;">&#41;</span> <span style="color: #080;">&#123;</span>
+    ceiling_date<span style="color: #080;">&#40;</span><span style="color: #0000FF; font-weight: bold;">date</span>, <span style="color: #ff0000;">&quot;month&quot;</span><span style="color: #080;">&#41;</span> <span style="color: #080;">-</span> days<span style="color: #080;">&#40;</span><span style="color: #ff0000;">1</span><span style="color: #080;">&#41;</span>
+<span style="color: #080;">&#125;</span>
+<span style="color: #228B22;"># try last_day(ymd(20000101) + months(0:11))</span></pre></td></tr></table></div>
+
+<h2>Changes in lubridate (v 1.1.0)</h2>
+<p>To comply with changes in base R, We’ve moved lubridate from an S3 class system to an S4 system. Most of these changes are contained “under the hood.” But some changes will affect how lubridate behaves and compromise previously written code. This disruption is unavoidable: previous versions of lubridate will not work on future versions of R. To see a complete list of changes, see the lubridate news file <a href="http://cran.r-project.org/web/packages/lubridate/NEWS" onclick="__gaTracker('send', 'event', 'outbound-article', 'http://cran.r-project.org/web/packages/lubridate/NEWS', 'here');" target="_blank">here</a>.</p>
+<p>Changes between version 0.2.6 and 1.1.0 can be grouped into three main categories:</p>
+<ol style="list-style-type:decimal">
+<li>
+<p>Subtracting two dates must now follow the default behavior of R, which is to create a difftime object. Previous versions of lubridate created an Interval object. If you receive an error involving an Interval object, please check that it is not in fact a difftime.</p>
+</li>
+<li>
+<p>Intervals now have a direction. This means the order of the dates in new_interval(), interval() and %&#8211;% matters. You can flip the direction with int_flip and coerce all intervals to be postive with int_standardize</p>
+</li>
+<li>
+<p>Lubridate no longer automatically coerces time span input to the correct class when performing math. This was poor programming because the user can and should explicitly control the class of their input with as.interval(), as.period(), and as.duration(). It also made lubridate needlessly chatty with messages and led to unintuitive results as we added increased functionality. When coercion is needed to perform an operation, lubridate now returns an informative error message.</p>
+</li>
+</ol>
+<h2>Further Resources</h2>
+<p>To learn more about lubridate, including the specifics of periods and durations, please read the original lubridate paper at <a href="http://www.jstatsoft.org/v40/i03/" onclick="__gaTracker('send', 'event', 'outbound-article', 'http://www.jstatsoft.org/v40/i03/', 'http://www.jstatsoft.org/v40/i03/');" target="_blank">http://www.jstatsoft.org/v40/<wbr>i03/</a>. Questions about lubridate can be addressed to the <a href="http://groups.google.com/group/lubridate" onclick="__gaTracker('send', 'event', 'outbound-article', 'http://groups.google.com/group/lubridate', 'lubridate google group');" target="_blank">lubridate google group</a>. The development page for lubridate can be found at <a href="http://github.com/hadley/lubridate" onclick="__gaTracker('send', 'event', 'outbound-article', 'http://github.com/hadley/lubridate', 'http://github.com/hadley/lubridate');" target="_blank">http://github.com/hadley/<wbr>lubridate</a>.</p>
+<div class="social4i" style="height:82px;">
+<div class="social4in" style="height:82px;float: left;">
+<div class="socialicons s4twitter" style="float:left;margin-right: 10px;"><a href="https://twitter.com/share" onclick="__gaTracker('send', 'event', 'outbound-article', 'https://twitter.com/share', '');" data-url="http://www.r-statistics.com/2012/03/do-more-with-dates-and-times-in-r-with-lubridate-1-1-0/" data-counturl="http://www.r-statistics.com/2012/03/do-more-with-dates-and-times-in-r-with-lubridate-1-1-0/" data-text="Do more with dates and times in R with lubridate 1.1.0" class="twitter-share-button" data-count="vertical" data-via=""></a></div>
+<div class="socialicons s4fblike" style="float:left;margin-right: 10px;">
+<div class="fb-like" data-href="http://www.r-statistics.com/2012/03/do-more-with-dates-and-times-in-r-with-lubridate-1-1-0/" data-send="true"  data-layout="box_count" data-width="55" data-height="62"  data-show-faces="false"></div>
+</div>
+</div>
+<div style="clear:both"></div>
+</div>
+
+<div id='jp-relatedposts' class='jp-relatedposts' >
+	<h3 class="jp-relatedposts-headline"><em>Related</em></h3>
+</div>	</div><!-- .entry-content -->
+
+	
+	<footer class="entry-footer">
+		<span class="posted-on"><span class="screen-reader-text">Posted on </span><a href="http://www.r-statistics.com/2012/03/do-more-with-dates-and-times-in-r-with-lubridate-1-1-0/" rel="bookmark"><time class="entry-date published updated" datetime="2012-03-16T03:13:43+00:00">March 16, 2012</time></a></span><span class="byline"><span class="author vcard"><span class="screen-reader-text">Author </span><a class="url fn n" href="http://www.r-statistics.com/author/theshadow/">Tal Galili</a></span></span><span class="cat-links"><span class="screen-reader-text">Categories </span><a href="http://www.r-statistics.com/category/r/" rel="category tag">R</a>, <a href="http://www.r-statistics.com/category/r-programming/" rel="category tag">R programming</a></span><span class="tags-links"><span class="screen-reader-text">Tags </span><a href="http://www.r-statistics.com/tag/dates/" rel="tag">dates</a>, <a href="http://www.r-statistics.com/tag/garrett-grolemund/" rel="tag">Garrett Grolemund</a>, <a href="http://www.r-statistics.com/tag/garrett-groleund/" rel="tag">Garrett Groleund</a>, <a href="http://www.r-statistics.com/tag/hadley-wickham/" rel="tag">Hadley Wickham</a>, <a href="http://www.r-statistics.com/tag/library/" rel="tag">library</a>, <a href="http://www.r-statistics.com/tag/lubridate/" rel="tag">lubridate</a>, <a href="http://www.r-statistics.com/tag/package/" rel="tag">package</a>, <a href="http://www.r-statistics.com/tag/r/" rel="tag">R</a></span>			</footer><!-- .entry-footer -->
+
+</article><!-- #post-## -->
+
+<div id="comments" class="comments-area">
+
+			<h2 class="comments-title">
+			4 thoughts on &ldquo;Do more with dates and times in R with lubridate 1.1.0&rdquo;		</h2>
+
+		
+		<ol class="comment-list">
+					<li id="comment-773" class="comment even thread-even depth-1">
+			<article id="div-comment-773" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src="data:image/gif;base64,R0lGODdhAQABAPAAAP///wAAACwAAAAAAQABAEACAkQBADs=" data-lazy-type="image" data-lazy-src='http://0.gravatar.com/avatar/6f03d80f74938c76d52afe12c385670d?s=56&#038;d=mm&#038;r=g' srcset='http://0.gravatar.com/avatar/6f03d80f74938c76d52afe12c385670d?s=112&amp;d=mm&amp;r=g 2x' class='lazy lazy-hidden avatar avatar-56 photo' height='56' width='56' /><noscript><img alt='' src='http://0.gravatar.com/avatar/6f03d80f74938c76d52afe12c385670d?s=56&#038;d=mm&#038;r=g' srcset='http://0.gravatar.com/avatar/6f03d80f74938c76d52afe12c385670d?s=112&amp;d=mm&amp;r=g 2x' class='avatar avatar-56 photo' height='56' width='56' /></noscript>						<b class="fn">Tom P</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.r-statistics.com/2012/03/do-more-with-dates-and-times-in-r-with-lubridate-1-1-0/#comment-773">
+							<time datetime="2012-04-19T18:01:00+00:00">
+								April 19, 2012 at 6:01 pm							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>My bigger use for with_tz() and force_tz() is handling daylight savings times, which are flagged as timezones.  I have instrumentation data in standard time and in local time (automatically switching back &amp; forth to DST).  <br />
+ with_tz() is an easy tool to create gmt (no DST) representations of all instants for merging data frames.  [Match-merging on dates with 2 sets of times between 1am and 2am is a bad idea, and R on MSwindows doesn&#8217;t define a PST timezone.]</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a class='comment-reply-link' href='/2012/03/do-more-with-dates-and-times-in-r-with-lubridate-1-1-0/?replytocom=773#respond' onclick='return addComment.moveForm( "div-comment-773", "773", "respond", "60602" )' aria-label='Reply to Tom P'>Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		<li id="comment-774" class="pingback odd alt thread-odd thread-alt depth-1">
+			<div class="comment-body">
+				Pingback: <a href='http://blog.rstudio.org/2012/08/20/welcome-hadley-winston-and-garrett/' rel='external nofollow' class='url'>Welcome Hadley, Winston, and Garrett! &laquo; RStudio Blog</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-775" class="pingback even thread-even depth-1">
+			<div class="comment-body">
+				Pingback: <a href='http://cseanburns.net/2012/10/18/more-on-dates-in-r/' rel='external nofollow' class='url'>More on Dates in R | Journal of C. Sean Burns</a> 			</div>
+</li><!-- #comment-## -->
+		<li id="comment-776" class="comment odd alt thread-odd thread-alt depth-1">
+			<article id="div-comment-776" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt='' src="data:image/gif;base64,R0lGODdhAQABAPAAAP///wAAACwAAAAAAQABAEACAkQBADs=" data-lazy-type="image" data-lazy-src='http://1.gravatar.com/avatar/41bd03c3bfcac33d3ecd52b8ff196f6f?s=56&#038;d=mm&#038;r=g' srcset='http://1.gravatar.com/avatar/41bd03c3bfcac33d3ecd52b8ff196f6f?s=112&amp;d=mm&amp;r=g 2x' class='lazy lazy-hidden avatar avatar-56 photo' height='56' width='56' /><noscript><img alt='' src='http://1.gravatar.com/avatar/41bd03c3bfcac33d3ecd52b8ff196f6f?s=56&#038;d=mm&#038;r=g' srcset='http://1.gravatar.com/avatar/41bd03c3bfcac33d3ecd52b8ff196f6f?s=112&amp;d=mm&amp;r=g 2x' class='avatar avatar-56 photo' height='56' width='56' /></noscript>						<b class="fn">Bob</b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://www.r-statistics.com/2012/03/do-more-with-dates-and-times-in-r-with-lubridate-1-1-0/#comment-776">
+							<time datetime="2014-11-26T13:50:00+00:00">
+								November 26, 2014 at 1:50 pm							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>I did not go through all your post, but your last_day function may have a small bug unless this is what you want:<br />
+last_day(as.Date(&#8216;2014-1-1&#8242;)): &#8220;2013-12-31&#8243;<br />
+last_day(as.Date(&#8216;2014-1-2&#8242;)): &#8220;2014-01-31&#8243;<br />
+A working version might be something like:<br />
+last_day &lt;- function(date) {<br />
+    ceiling_date(date+days(1), &quot;month&quot;) &#8211; days(1)<br />
+}</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a class='comment-reply-link' href='/2012/03/do-more-with-dates-and-times-in-r-with-lubridate-1-1-0/?replytocom=776#respond' onclick='return addComment.moveForm( "div-comment-776", "776", "respond", "60602" )' aria-label='Reply to Bob'>Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+		</ol><!-- .comment-list -->
+
+		
+	
+	
+				
+		<div id="respond" class="comment-respond">
+			<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2012/03/do-more-with-dates-and-times-in-r-with-lubridate-1-1-0/#respond" style="display:none;">Cancel reply</a></small></h3>
+			<div id="commentform" class="comment-form">
+				<iframe src="http://jetpack.wordpress.com/jetpack-comment/?blogid=13778530&#038;postid=60602&#038;comment_registration=0&#038;require_name_email=1&#038;stc_enabled=0&#038;stb_enabled=0&#038;show_avatars=1&#038;avatar_default=mystery&#038;greeting=Leave+a+Reply&#038;greeting_reply=Leave+a+Reply+to+%25s&#038;color_scheme=light&#038;lang=en-US&#038;jetpack_version=3.5.3&#038;sig=34ccdc8d9080180fc16e296f2e7a2b4273cbbf79#parent=http%3A%2F%2Fwww.r-statistics.com%2F2012%2F03%2Fdo-more-with-dates-and-times-in-r-with-lubridate-1-1-0%2F" allowtransparency="false" style="width:100%; height: 430px;border:0px;" frameBorder="0" scrolling="no" name="jetpack_remote_comment" id="jetpack_remote_comment"></iframe>
+			</div>
+		</div>
+
+		
+		<input type="hidden" name="comment_parent" id="comment_parent" value="" />
+
+		
+</div><!-- .comments-area -->
+
+	<nav class="navigation post-navigation" role="navigation">
+		<h2 class="screen-reader-text">Post navigation</h2>
+		<div class="nav-links"><div class="nav-previous"><a href="http://www.r-statistics.com/2012/01/printing-nested-tables-in-r-bridging-between-the-reshape-and-tables-packages/" rel="prev"><span class="meta-nav" aria-hidden="true">Previous</span> <span class="screen-reader-text">Previous post:</span> <span class="post-title">Printing nested tables in R – bridging between the {reshape} and {tables} packages</span></a></div><div class="nav-next"><a href="http://www.r-statistics.com/2012/04/speed-up-your-r-code-using-a-just-in-time-jit-compiler/" rel="next"><span class="meta-nav" aria-hidden="true">Next</span> <span class="screen-reader-text">Next post:</span> <span class="post-title">Speed up your R code using a just-in-time (JIT) compiler</span></a></div></div>
+	</nav>
+		</main><!-- .site-main -->
+	</div><!-- .content-area -->
+
+
+	</div><!-- .site-content -->
+
+	<footer id="colophon" class="site-footer" role="contentinfo">
+		<div class="site-info">
+						<a href="https://wordpress.org/">Proudly powered by WordPress</a>
+		</div><!-- .site-info -->
+	</footer><!-- .site-footer -->
+
+</div><!-- .site -->
+
+	<div style="display:none">
+	<div class="grofile-hash-map-6f03d80f74938c76d52afe12c385670d">
+	</div>
+	<div class="grofile-hash-map-41bd03c3bfcac33d3ecd52b8ff196f6f">
+	</div>
+	</div>
+<script type='text/javascript' src='http://www.r-statistics.com/wp-content/plugins/akismet/_inc/form.js?ver=3.1.1'></script>
+<script type='text/javascript' src='http://www.r-statistics.com/wp-content/plugins/jetpack/modules/photon/photon.js?ver=20130122'></script>
+<script type='text/javascript' src='http://s0.wp.com/wp-content/js/devicepx-jetpack.js?ver=201522'></script>
+<script type='text/javascript' src='http://s.gravatar.com/js/gprofiles.js?ver=2015Mayaa'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://www.r-statistics.com/wp-content/plugins/jetpack/modules/wpgroho.js?ver=4.2.2'></script>
+<script type='text/javascript' src='http://www.r-statistics.com/wp-content/themes/twentyfifteen/js/skip-link-focus-fix.js?ver=20141010'></script>
+<script type='text/javascript' src='http://www.r-statistics.com/wp-includes/js/comment-reply.min.js?ver=4.2.2'></script>
+<script type='text/javascript'>
+/* <![CDATA[ */
+var screenReaderText = {"expand":"<span class=\"screen-reader-text\">expand child menu<\/span>","collapse":"<span class=\"screen-reader-text\">collapse child menu<\/span>"};
+/* ]]> */
+</script>
+<script type='text/javascript' src='http://www.r-statistics.com/wp-content/themes/twentyfifteen/js/functions.js?ver=20150330'></script>
+<script type='text/javascript' src='http://www.r-statistics.com/wp-content/plugins/bj-lazy-load/js/combined.min.js?ver=0.7.5'></script>
+	<div id="fb-root"></div>
+	
+		<!--[if IE]>
+		<script type="text/javascript">
+		if ( 0 === window.location.hash.indexOf( '#comment-' ) ) {
+			// window.location.reload() doesn't respect the Hash in IE
+			window.location.hash = window.location.hash;
+		}
+		</script>
+		<![endif]-->
+		<script type="text/javascript">
+			var comm_par_el = document.getElementById( 'comment_parent' ),
+			    comm_par = (comm_par_el && comm_par_el.value) ? comm_par_el.value : '',
+			    frame = document.getElementById( 'jetpack_remote_comment' ),
+			    tellFrameNewParent;
+
+			tellFrameNewParent = function() {
+				if ( comm_par ) {
+					frame.src = "http://jetpack.wordpress.com/jetpack-comment/?blogid=13778530&postid=60602&comment_registration=0&require_name_email=1&stc_enabled=0&stb_enabled=0&show_avatars=1&avatar_default=mystery&greeting=Leave+a+Reply&greeting_reply=Leave+a+Reply+to+%25s&color_scheme=light&lang=en-US&jetpack_version=3.5.3&sig=34ccdc8d9080180fc16e296f2e7a2b4273cbbf79#parent=http%3A%2F%2Fwww.r-statistics.com%2F2012%2F03%2Fdo-more-with-dates-and-times-in-r-with-lubridate-1-1-0%2F" + '&replytocom=' + parseInt( comm_par, 10 ).toString();
+				} else {
+					frame.src = "http://jetpack.wordpress.com/jetpack-comment/?blogid=13778530&postid=60602&comment_registration=0&require_name_email=1&stc_enabled=0&stb_enabled=0&show_avatars=1&avatar_default=mystery&greeting=Leave+a+Reply&greeting_reply=Leave+a+Reply+to+%25s&color_scheme=light&lang=en-US&jetpack_version=3.5.3&sig=34ccdc8d9080180fc16e296f2e7a2b4273cbbf79#parent=http%3A%2F%2Fwww.r-statistics.com%2F2012%2F03%2Fdo-more-with-dates-and-times-in-r-with-lubridate-1-1-0%2F";
+				}
+			};
+
+	
+			if ( 'undefined' !== typeof addComment ) {
+				addComment._Jetpack_moveForm = addComment.moveForm;
+
+				addComment.moveForm = function( commId, parentId, respondId, postId ) {
+					var returnValue = addComment._Jetpack_moveForm( commId, parentId, respondId, postId ), cancelClick, cancel;
+
+					if ( false === returnValue ) {
+						cancel = document.getElementById( 'cancel-comment-reply-link' );
+						cancelClick = cancel.onclick;
+						cancel.onclick = function() {
+							var cancelReturn = cancelClick.call( this );
+							if ( false !== cancelReturn ) {
+								return cancelReturn;
+							}
+
+							if ( !comm_par ) {
+								return cancelReturn;
+							}
+
+							comm_par = 0;
+
+							tellFrameNewParent();
+
+							return cancelReturn;
+						};
+					}
+
+					if ( comm_par == parentId ) {
+						return returnValue;
+					}
+
+					comm_par = parentId;
+
+					tellFrameNewParent();
+
+					return returnValue;
+				};
+			}
+
+	
+			if ( window.postMessage ) {
+				if ( document.addEventListener ) {
+					window.addEventListener( 'message', function( event ) {
+						if ( "http:\/\/jetpack.wordpress.com" !== event.origin ) {
+							return;
+						}
+
+						jQuery( frame ).height( event.data );
+					} );
+				} else if ( document.attachEvent ) {
+					window.attachEvent( 'message', function( event ) {
+						if ( "http:\/\/jetpack.wordpress.com" !== event.origin ) {
+							return;
+						}
+
+						jQuery( frame ).height( event.data );
+					} );
+				}
+			}
+		</script>
+
+	<script type='text/javascript' src='http://stats.wp.com/e-201522.js' async defer></script>
+<script type='text/javascript'>
+	_stq = window._stq || [];
+	_stq.push([ 'view', {v:'ext',j:'1:3.5.3',blog:'13778530',post:'60602',tz:'0',srv:'www.r-statistics.com'} ]);
+	_stq.push([ 'clickTrackerInit', '13778530', '60602' ]);
+</script>
+
+</body>
+</html>
+
+<!-- Dynamic page generated in 0.944 seconds. -->
+<!-- Cached page generated by WP-Super-Cache on 2015-05-27 20:00:04 -->
+
+<!-- Compression = gzip -->
